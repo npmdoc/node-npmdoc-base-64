@@ -1,0 +1,257 @@
+<div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a
+
+        href="http://mths.be/base64"
+
+    >base-64 (v0.1.0)</a>
+</h1>
+<h4>A robust base64 encoder/decoder that is fully compatible with `atob()` and `btoa()`, written in JavaScript.</h4>
+<div class="apidocSectionDiv"><a
+    href="#apidoc.tableOfContents"
+    id="apidoc.tableOfContents"
+><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.base-64">module base-64</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.base-64.decode">
+            function <span class="apidocSignatureSpan">base-64.</span>decode
+            <span class="apidocSignatureSpan">(input)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.base-64.encode">
+            function <span class="apidocSignatureSpan">base-64.</span>encode
+            <span class="apidocSignatureSpan">(input)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <span class="apidocSignatureSpan">string <span class="apidocSignatureSpan">base-64.</span>version</span>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.base-64" id="apidoc.module.base-64">module base-64</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.base-64.decode" id="apidoc.element.base-64.decode">
+        function <span class="apidocSignatureSpan">base-64.</span>decode
+        <span class="apidocSignatureSpan">(input)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">decode = function (input) {
+		input = String(input)
+			.replace(REGEX_SPACE_CHARACTERS, &#x27;&#x27;);
+		var length = input.length;
+		if (length % 4 == 0) {
+			input = input.replace(/==?$/, &#x27;&#x27;);
+			length = input.length;
+		}
+		if (
+			length % 4 == 1 ||
+			// http://whatwg.org/C#alphanumeric-ascii-characters
+			/[^+a-zA-Z0-9/]/.test(input)
+		) {
+			error(
+				&#x27;Invalid character: the string to be decoded is not correctly encoded.&#x27;
+			);
+		}
+		var bitCounter = 0;
+		var bitStorage;
+		var buffer;
+		var output = &#x27;&#x27;;
+		var position = -1;
+		while (++position &#x3c; length) {
+			buffer = TABLE.indexOf(input.charAt(position));
+			bitStorage = bitCounter % 4 ? bitStorage * 64 + buffer : buffer;
+			// Unless this is the first of a group of 4 characters…
+			if (bitCounter++ % 4) {
+				// …convert the first 8 bits to a single ASCII character.
+				output += String.fromCharCode(
+					0xFF &#x26; bitStorage &#x3e;&#x3e; (-2 * bitCounter &#x26; 6)
+				);
+			}
+		}
+		return output;
+	}</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+var text = &#x27;foo © bar 𝌆 baz&#x27;;
+var bytes = utf8.encode(text);
+var encoded = base64.encode(bytes);
+console.log(encoded);
+// → &#x27;Zm9vIMKpIGJhciDwnYyGIGJheg==&#x27;
+```
+
+### `base64.<span class="apidocCodeKeywordSpan">decode</span>(input)`
+
+This function takes a base64-encoded string (the `input` parameter) and decodes it. The return value is in the form of a string
+containing only characters in the range from U+0000 to U+00FF, each representing a binary byte with values `0x00` to `0xFF`. The
+ `base64.decode()` function is designed to be fully compatible with [`atob()` as described in the HTML Standard](http://www.whatwg
+.org/specs/web-apps/current-work/multipage/webappapis.html#dom-windowbase64-atob).
+
+```js
+var decodedData = base64.decode(encodedData);
+```
+...</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.base-64.encode" id="apidoc.element.base-64.encode">
+        function <span class="apidocSignatureSpan">base-64.</span>encode
+        <span class="apidocSignatureSpan">(input)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">encode = function (input) {
+		input = String(input);
+		if (/[^\0-\xFF]/.test(input)) {
+			// Note: no need to special-case astral symbols here, as surrogates are
+			// matched, and the input is supposed to only contain ASCII anyway.
+			error(
+				&#x27;The string to be encoded contains characters outside of the &#x27; +
+				&#x27;Latin1 range.&#x27;
+			);
+		}
+		var padding = input.length % 3;
+		var output = &#x27;&#x27;;
+		var position = -1;
+		var a;
+		var b;
+		var c;
+		var d;
+		var buffer;
+		// Make sure any padding is handled outside of the loop.
+		var length = input.length - padding;
+
+		while (++position &#x3c; length) {
+			// Read three bytes, i.e. 24 bits.
+			a = input.charCodeAt(position) &#x3c;&#x3c; 16;
+			b = input.charCodeAt(++position) &#x3c;&#x3c; 8;
+			c = input.charCodeAt(++position);
+			buffer = a + b + c;
+			// Turn the 24 bits into four chunks of 6 bits each, and append the
+			// matching character for each of them to the output.
+			output += (
+				TABLE.charAt(buffer &#x3e;&#x3e; 18 &#x26; 0x3F) +
+				TABLE.charAt(buffer &#x3e;&#x3e; 12 &#x26; 0x3F) +
+				TABLE.charAt(buffer &#x3e;&#x3e; 6 &#x26; 0x3F) +
+				TABLE.charAt(buffer &#x26; 0x3F)
+			);
+		}
+
+		if (padding == 2) {
+			a = input.charCodeAt(position) &#x3c;&#x3c; 8;
+			b = input.charCodeAt(++position);
+			buffer = a + b;
+			output += (
+				TABLE.charAt(buffer &#x3e;&#x3e; 10) +
+				TABLE.charAt((buffer &#x3e;&#x3e; 4) &#x26; 0x3F) +
+				TABLE.charAt((buffer &#x3c;&#x3c; 2) &#x26; 0x3F) +
+				&#x27;=&#x27;
+			);
+		} else if (padding == 1) {
+			buffer = input.charCodeAt(position);
+			output += (
+				TABLE.charAt(buffer &#x3e;&#x3e; 2) +
+				TABLE.charAt((buffer &#x3c;&#x3c; 4) &#x26; 0x3F) +
+				&#x27;==&#x27;
+			);
+		}
+
+		return output;
+	}</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+
+## API
+
+### `base64.version`
+
+A string representing the semantic version number.
+
+### `base64.<span class="apidocCodeKeywordSpan">encode</span>(input)`
+
+This function takes a byte string (the `input` parameter) and encodes it according to base64. The input data must be in the form
+ of a string containing only characters in the range from U+0000 to U+00FF, each representing a binary byte with values `0x00` to
+ `0xFF`. The `base64.encode()` function is designed to be fully compatible with [`btoa()` as described in the HTML Standard](http
+://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html#dom-windowbase64-btoa).
+
+```js
+var encodedData = base64.encode(input);
+```
+...</pre></li>
+    </ul>
+
+
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
